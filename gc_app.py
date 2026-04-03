@@ -483,7 +483,7 @@ def _make_commercials_table(rows):
 @app.route('/')
 def index():
     from flask import make_response
-    response = make_response(send_file(os.path.join(BASE_DIR, 'gc_form.html')))
+    response = make_response(send_file(os.path.join(BASE_DIR, 'index.html')))
     response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     return response
 
