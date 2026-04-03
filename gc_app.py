@@ -338,57 +338,145 @@ def _sub_heading(text, letter, size_pt=11, bold=True):
 
 
 def _make_commercials_table(rows):
-    """Build the fee table"""
+    """Build the fee table — full width, compact rows, matching original"""
     tbl = OxmlElement('w:tbl')
     tblPr = OxmlElement('w:tblPr')
-    tblStyle = OxmlElement('w:tblStyle'); tblStyle.set(qn('w:val'), 'TableGrid'); tblPr.append(tblStyle)
-    tblW = OxmlElement('w:tblW'); tblW.set(qn('w:w'), '8640'); tblW.set(qn('w:type'), 'dxa'); tblPr.append(tblW)
+    tblStyle = OxmlElement('w:tblStyle')
+    tblStyle.set(qn('w:val'), 'TableGrid')
+    tblPr.append(tblStyle)
+
+    # Full page width — 8640 twips (6 inches at 1440 per inch)
+    tblW = OxmlElement('w:tblW')
+    tblW.set(qn('w:w'), '8640')
+    tblW.set(qn('w:type'), 'dxa')
+    tblPr.append(tblW)
+
+    # Zero table indent so it aligns with page margins
+    tblInd = OxmlElement('w:tblInd')
+    tblInd.set(qn('w:w'), '0')
+    tblInd.set(qn('w:type'), 'dxa')
+    tblPr.append(tblInd)
+
+    # Borders
     tblBorders = OxmlElement('w:tblBorders')
     for s in ['top', 'left', 'bottom', 'right', 'insideH', 'insideV']:
         b = OxmlElement(f'w:{s}')
-        b.set(qn('w:val'), 'single'); b.set(qn('w:sz'), '4'); b.set(qn('w:color'), '000000')
+        b.set(qn('w:val'), 'single')
+        b.set(qn('w:sz'), '4')
+        b.set(qn('w:color'), '000000')
         tblBorders.append(b)
     tblPr.append(tblBorders)
+
+    # Table layout fixed
+    tblLayout = OxmlElement('w:tblLayout')
+    tblLayout.set(qn('w:type'), 'fixed')
+    tblPr.append(tblLayout)
+
+    tblJc = OxmlElement('w:jc')
+    tblJc.set(qn('w:val'), 'center')
+    tblPr.append(tblJc)
+
     tbl.append(tblPr)
+
+    # Column widths: No.(540) | Scope(6300) | Fees(1800) = 8640 total
+    col_widths = [540, 6300, 1800]
     tblGrid = OxmlElement('w:tblGrid')
-    for w in [540, 6300, 1800]:  # No. / Scope / Fees  — total 8640
-        gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); tblGrid.append(gc)
+    for w in col_widths:
+        gc = OxmlElement('w:gridCol')
+        gc.set(qn('w:w'), str(w))
+        tblGrid.append(gc)
     tbl.append(tblGrid)
 
-    def _tc(text, bold=False, align='left', width=None, shade=None):
+    def _tc(text, bold=False, align='left', width=None, shade=None, size_pt=10):
         tc = OxmlElement('w:tc')
         tcPr = OxmlElement('w:tcPr')
         if width:
-            tcW = OxmlElement('w:tcW'); tcW.set(qn('w:w'), str(width)); tcW.set(qn('w:type'), 'dxa'); tcPr.append(tcW)
+            tcW = OxmlElement('w:tcW')
+            tcW.set(qn('w:w'), str(width))
+            tcW.set(qn('w:type'), 'dxa')
+            tcPr.append(tcW)
         if shade:
             shd = OxmlElement('w:shd')
-            shd.set(qn('w:val'), 'clear'); shd.set(qn('w:color'), 'auto'); shd.set(qn('w:fill'), shade)
+            shd.set(qn('w:val'), 'clear')
+            shd.set(qn('w:color'), 'auto')
+            shd.set(qn('w:fill'), shade)
             tcPr.append(shd)
+        # Compact cell margins — tight like Excel
         mar = OxmlElement('w:tcMar')
-        for side, val in zip(['top', 'bottom', 'left', 'right'], [80, 80, 120, 120]):
-            m = OxmlElement(f'w:{side}'); m.set(qn('w:w'), str(val)); m.set(qn('w:type'), 'dxa'); mar.append(m)
+        for side, val in zip(['top', 'bottom', 'left', 'right'], [60, 60, 108, 108]):
+            m = OxmlElement(f'w:{side}')
+            m.set(qn('w:w'), str(val))
+            m.set(qn('w:type'), 'dxa')
+            mar.append(m)
         tcPr.append(mar)
-        va = OxmlElement('w:vAlign'); va.set(qn('w:val'), 'center'); tcPr.append(va)
+        va = OxmlElement('w:vAlign')
+        va.set(qn('w:val'), 'center')
+        tcPr.append(va)
         tc.append(tcPr)
-        text_color = 'FFFFFF' if shade == '1F3864' else None
-        p = _p(text, bold=bold, size_pt=11, font='Roboto',
-               color_hex=text_color,
-               align=align)
+
+        # Paragraph inside cell
+        p = OxmlElement('w:p')
+        pPr = OxmlElement('w:pPr')
+        # Compact line spacing
+        spacing = OxmlElement('w:spacing')
+        spacing.set(qn('w:before'), '0')
+        spacing.set(qn('w:after'), '0')
+        spacing.set(qn('w:line'), '240')
+        spacing.set(qn('w:lineRule'), 'auto')
+        pPr.append(spacing)
+        if align != 'left':
+            jc = OxmlElement('w:jc')
+            jc.set(qn('w:val'), 'center' if align == 'center' else 'right')
+            pPr.append(jc)
+        p.append(pPr)
+        if text:
+            r = OxmlElement('w:r')
+            rPr = OxmlElement('w:rPr')
+            rFonts = OxmlElement('w:rFonts')
+            rFonts.set(qn('w:ascii'), 'Roboto')
+            rFonts.set(qn('w:hAnsi'), 'Roboto')
+            rPr.append(rFonts)
+            if bold:
+                rPr.append(OxmlElement('w:b'))
+            sz = OxmlElement('w:sz')
+            sz.set(qn('w:val'), str(size_pt * 2))
+            rPr.append(sz)
+            szCs = OxmlElement('w:szCs')
+            szCs.set(qn('w:val'), str(size_pt * 2))
+            rPr.append(szCs)
+            # White text for header
+            if shade == '1F3864':
+                col = OxmlElement('w:color')
+                col.set(qn('w:val'), 'FFFFFF')
+                rPr.append(col)
+            r.append(rPr)
+            t = OxmlElement('w:t')
+            t.set('{http://www.w3.org/XML/1998/namespace}space', 'preserve')
+            t.text = text
+            r.append(t)
+            p.append(r)
         tc.append(p)
         return tc
 
     for ri, row in enumerate(rows):
         tr = OxmlElement('w:tr')
+        # Compact row height — 360 twips (0.25 inch), exact like Excel
+        trPr = OxmlElement('w:trPr')
+        trHeight = OxmlElement('w:trHeight')
+        trHeight.set(qn('w:val'), '360')
+        trHeight.set(qn('w:hRule'), 'atLeast')
+        trPr.append(trHeight)
+        tr.append(trPr)
+
         is_header = (ri == 0)
         shade = '1F3864' if is_header else None
-        widths = [540, 6300, 1800]
         aligns = ['center', 'left', 'right']
         for ci, cell_text in enumerate(row):
-            tc = _tc(cell_text, bold=is_header, align=aligns[ci], width=widths[ci], shade=shade)
+            tc = _tc(cell_text, bold=is_header, align=aligns[ci],
+                     width=col_widths[ci], shade=shade, size_pt=10)
             tr.append(tc)
         tbl.append(tr)
     return tbl
-
 
 # ── Main route ───────────────────────────────────────────────────────────────
 
@@ -617,52 +705,39 @@ def generate_giftcity_word():
             ref = elem
 
         # Update company name on cover (child index 22 = "LAKESHORE INDIA")
-        # Update company name on cover — auto font size based on length
+        # Update company name on cover — same logic as InCorp app.py
+        # Update company name on cover
         try:
             cover_p = list(body)[22]
             if cover_p.tag == qn('w:p'):
-                # Auto size: shorter names = bigger font, longer names = smaller font
-                name_upper = client_company.upper()
-                name_len = len(name_upper)
-                if name_len <= 20:
-                    font_size = 28
-                elif name_len <= 30:
-                    font_size = 24
-                elif name_len <= 40:
-                    font_size = 20
-                else:
-                    font_size = 16
-
-                for t_elem in cover_p.iter(qn('w:t')):
-                    if t_elem.text and t_elem.text.strip():
-                        t_elem.text = name_upper
-                        break
-
-                # Update font size in all runs of this paragraph
-                for r_elem in cover_p.iter(qn('w:r')):
-                    rPr = r_elem.find(qn('w:rPr'))
-                    if rPr is None:
-                        rPr = OxmlElement('w:rPr')
-                        r_elem.insert(0, rPr)
-                    for old in rPr.findall(qn('w:sz')): rPr.remove(old)
-                    for old in rPr.findall(qn('w:szCs')): rPr.remove(old)
-                    sz = OxmlElement('w:sz')
-                    sz.set(qn('w:val'), str(font_size * 2))
-                    rPr.append(sz)
-                    szCs = OxmlElement('w:szCs')
-                    szCs.set(qn('w:val'), str(font_size * 2))
-                    rPr.append(szCs)
-
-                # Fix alignment — center instead of right so it sits below heading
+                # Remove left indent (template has 5760 twips = 4 inch indent)
                 pPr = cover_p.find(qn('w:pPr'))
                 if pPr is None:
                     pPr = OxmlElement('w:pPr')
                     cover_p.insert(0, pPr)
-                for old_jc in pPr.findall(qn('w:jc')):
-                    pPr.remove(old_jc)
-                jc = OxmlElement('w:jc')
-                jc.set(qn('w:val'), 'center')
-                pPr.append(jc)
+                for old_ind in pPr.findall(qn('w:ind')): pPr.remove(old_ind)
+                # Set center alignment
+                for old_jc in pPr.findall(qn('w:jc')): pPr.remove(old_jc)
+                jc = OxmlElement('w:jc'); jc.set(qn('w:val'), 'center'); pPr.append(jc)
+                # Auto font size based on company name length
+                name_upper = client_company.upper()
+                name_len = len(name_upper)
+                if name_len <= 15:   font_val = '52'
+                elif name_len <= 25: font_val = '48'
+                elif name_len <= 35: font_val = '40'
+                else:                font_val = '32'
+                # Only update the text run (not the image run)
+                for r_elem in cover_p.iter(qn('w:r')):
+                    t_elem = r_elem.find(qn('w:t'))
+                    if t_elem is not None and t_elem.text and t_elem.text.strip():
+                        t_elem.text = name_upper
+                        rPr = r_elem.find(qn('w:rPr'))
+                        if rPr is None:
+                            rPr = OxmlElement('w:rPr'); r_elem.insert(0, rPr)
+                        for old in rPr.findall(qn('w:sz')): rPr.remove(old)
+                        for old in rPr.findall(qn('w:szCs')): rPr.remove(old)
+                        sz = OxmlElement('w:sz'); sz.set(qn('w:val'), font_val); rPr.append(sz)
+                        szCs = OxmlElement('w:szCs'); szCs.set(qn('w:val'), font_val); rPr.append(szCs)
         except:
             pass
 
