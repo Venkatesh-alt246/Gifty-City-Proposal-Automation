@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InCorp Gift City Proposal Generator</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    padding: 40px;
+  }
+
+  h1 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 8px;
+    font-size: 2.2em;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: #667eea;
+    margin-bottom: 30px;
+    font-size: 1.05em;
+    font-weight: 600;
+  }
+
+  /* Section cards */
+  .section {
+    margin-bottom: 32px;
+    padding: 25px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+  }
+
+  .section h2 {
+    color: #667eea;
+    margin-bottom: 20px;
+    font-size: 1.4em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* Form grid */
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+  .form-row.full { grid-template-columns: 1fr; }
+
+  .form-group { display: flex; flex-direction: column; }
+
+  label {
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #333;
+    font-size: 0.92em;
+  }
+
+  input[type="text"], input[type="date"], textarea, select {
+    padding: 11px 13px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.3s ease;
+  }
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+  }
+  textarea { resize: vertical; min-height: 90px; }
+
+  /* Scope checkboxes */
+  .scope-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 13px 15px;
+    background: white;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.25s ease;
+  }
+  .scope-item:hover {
+    background: #f0f4ff;
+    transform: translateX(3px);
+  }
+  .scope-item.checked {
+    background: #f0f4ff;
+    border-color: #667eea;
+  }
+  .scope-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-top: 1px;
+    accent-color: #667eea;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .scope-item-content { flex: 1; }
+  .scope-item-label { font-size: 13px; font-weight: 600; color: #333; }
+  .scope-item-desc { font-size: 11px; color: #777; margin-top: 3px; }
+
+  /* Select all buttons */
+  .select-all-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .btn-small {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-small:hover { background: #5568d3; }
+  .btn-small.deselect {
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+  }
+  .btn-small.deselect:hover { background: #f0f4ff; }
+
+  /* Fee rows */
+  .fee-section {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 2px solid #e0e0e0;
+  }
+  .fee-section-title {
+    font-weight: 700;
+    font-size: 13px;
+    color: #667eea;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .fee-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: white;
+    border-radius: 6px;
+    border: 2px solid #e0e0e0;
+    margin-bottom: 8px;
+    transition: border-color 0.2s;
+  }
+  .fee-row:focus-within { border-color: #667eea; }
+  .fee-row label {
+    flex: 1;
+    font-size: 13px;
+    color: #444;
+    font-weight: 600;
+    margin: 0;
+  }
+  .fee-row input {
+    width: 150px;
+    flex-shrink: 0;
+    padding: 8px 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 5px;
+    font-size: 13px;
+    text-align: right;
+  }
+  .fee-note {
+    font-size: 11px;
+    color: #999;
+    margin-top: 4px;
+    padding-left: 4px;
+  }
+
+  /* Generate button */
+  .generate-btn {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: opacity 0.2s, transform 0.1s;
+    letter-spacing: 0.5px;
+  }
+  .generate-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+  .generate-btn:active { transform: translateY(0); }
+  .generate-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .status {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 14px;
+    color: #666;
+    min-height: 22px;
+    padding: 8px;
+    border-radius: 6px;
+  }
+  .status.error { background: #fff0f0; color: #C00000; }
+  .status.success { background: #f0fff4; color: #1a7a3c; font-weight: 600; }
+
+  /* Divider */
+  .section-divider {
+    height: 2px;
+    background: linear-gradient(to right, #667eea, #764ba2);
+    border-radius: 2px;
+    margin: 8px 0 20px 0;
+    opacity: 0.3;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>🏙️ Gift City Proposal Generator</h1>
+  <div class="subtitle">InCorp Advisory Services — GIFT City Setup &amp; Services</div>
+
+  <!-- CLIENT DETAILS -->
+  <div class="section">
+    <h2>📋 Client Details</h2>
+    <div class="section-divider"></div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Proposal Date</label>
+        <input type="date" id="proposalDate">
+      </div>
+      <div class="form-group">
+        <label>Client Name (with salutation)</label>
+        <input type="text" id="clientName" placeholder="Mr. Ishwaran Iyer">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Designation</label>
+        <input type="text" id="clientDesignation" placeholder="Director">
+      </div>
+      <div class="form-group">
+        <label>Company Name</label>
+        <input type="text" id="clientCompany" placeholder="Lake Shore India Management Private Limited">
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="form-group">
+        <label>Address Line 1</label>
+        <input type="text" id="clientAddress1" placeholder="Unit No. 1611-12, 16th Floor, C Wing, G Block">
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="form-group">
+        <label>Address Line 2</label>
+        <input type="text" id="clientAddress2" placeholder="One BKC, Bandra Kurla Complex, Bandra (East)">
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="form-group">
+        <label>Address Line 3</label>
+        <input type="text" id="clientAddress3" placeholder="Mumbai City, Mumbai, Maharashtra, India, 400051">
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="form-group">
+        <label>Summary of Requirements <span style="font-weight:400;color:#999;">(auto-filled, editable)</span></label>
+        <textarea id="summaryOfRequirements" rows="3"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 1 -->
+  <div class="section">
+    <h2>🏢 Section 1 — Entity Setup Services</h2>
+    <div class="section-divider"></div>
+
+    <div class="select-all-row">
+      <button class="btn-small" onclick="selectAll('sec1')">✓ Select All</button>
+      <button class="btn-small deselect" onclick="deselectAll('sec1')">✗ Deselect All</button>
+    </div>
+
+    <div class="scope-item" id="wrap_s1a">
+      <input type="checkbox" id="s1a" class="sec1" checked onchange="updateItem(this)">
+      <div class="scope-item-content">
+        <div class="scope-item-label">a) Company / LLP / Entity formation with other activities</div>
+        <div class="scope-item-desc">Name reservation, office space identification, PLOA, incorporation with PAN &amp; TAN</div>
+      </div>
+    </div>
+    <div class="scope-item" id="wrap_s1b">
+      <input type="checkbox" id="s1b" class="sec1" checked onchange="updateItem(this)">
+      <div class="scope-item-content">
+        <div class="scope-item-label">b) SEZ Unit application</div>
+        <div class="scope-item-desc">IFSCA application, Unit Approval Committee, Letter of Approval, SEZ Online registration</div>
+      </div>
+    </div>
+    <div class="scope-item" id="wrap_s1c">
+      <input type="checkbox" id="s1c" class="sec1" checked onchange="updateItem(this)">
+      <div class="scope-item-content">
+        <div class="scope-item-label">c) Bond-Cum-Legal Undertaking</div>
+        <div class="scope-item-desc">BLUT preparation, submission to Specified Officer, DC office approval</div>
+      </div>
+    </div>
+    <div class="scope-item" id="wrap_s1d">
+      <input type="checkbox" id="s1d" class="sec1" checked onchange="updateItem(this)">
+      <div class="scope-item-content">
+        <div class="scope-item-label">d) Obtaining Eligibility certificate for exemption</div>
+        <div class="scope-item-desc">Application preparation, submission and approval from DC office</div>
+      </div>
+    </div>
+    <div class="scope-item" id="wrap_s1e">
+      <input type="checkbox" id="s1e" class="sec1" checked onchange="updateItem(this)">
+      <div class="scope-item-content">
+        <div class="scope-item-label">e) Obtaining Import Export Code registration</div>
+        <div class="scope-item-desc">IEC Code application, filing and allotment</div>
+      </div>
+    </div>
+    <div class="scope-item" id="wrap_s1f">
+      <input type="checkbox" id="s1f" class="sec1" checked onchange="updateItem(this)">
+      <div class="scope-item-content">
+        <div class="scope-item-label">f) Obtaining GST registration</div>
+        <div class="scope-item-desc">GST registration application and approval for new entity</div>
+      </div>
+    </div>
+    <div class="scope-item" id="wrap_s1g">
+      <input type="checkbox" id="s1g" class="sec1" checked onchange="updateItem(this)">
+      <div class="scope-item-content">
+        <div class="scope-item-label">g) Obtaining RCMC</div>
+        <div class="scope-item-desc">RCMC application, filing and follow-up</div>
+      </div>
+    </div>
+    <div class="scope-item" id="wrap_s1h">
+      <input type="checkbox" id="s1h" class="sec1" checked onchange="updateItem(this)">
+      <div class="scope-item-content">
+        <div class="scope-item-label">h) FIU (Financial Intelligence Unit) Registration</div>
+        <div class="scope-item-desc">PMLA registration, FINnet login ID, reporting entity code</div>
+      </div>
+    </div>
+    <div class="scope-item" id="wrap_s1i">
+      <input type="checkbox" id="s1i" class="sec1" checked onchange="updateItem(this)">
+      <div class="scope-item-content">
+        <div class="scope-item-label">i) Professional Tax Registration (PTEC &amp; PTRC)</div>
+        <div class="scope-item-desc">PTEC and PTRC applications with Commercial Tax Department</div>
+      </div>
+    </div>
+
+    <div class="fee-section">
+      <div class="fee-section-title">💰 Section 1 Fee</div>
+      <div class="fee-row">
+        <label>Entity Setup Services — Total Fee (USD)</label>
+        <input type="text" id="fee_s1" value="5,000">
+      </div>
+      <div class="fee-note">Default: USD 5,000 lump sum for all selected items</div>
+    </div>
+  </div>
+
+  <!-- SECTION 2 -->
+  <div class="section">
+    <h2>⚙️ Section 2 — Other Support Services <span style="font-size:0.75em;font-weight:400;color:#999;">(Optional)</span></h2>
+    <div class="section-divider"></div>
+
+    <div class="select-all-row">
+      <button class="btn-small" onclick="selectAll('sec2')">✓ Select All</button>
+      <button class="btn-small deselect" onclick="deselectAll('sec2')">✗ Deselect All</button>
+    </div>
+
+    <div class="scope-item" id="wrap_s2a">
+      <input type="checkbox" id="s2a" class="sec2" onchange="updateItem(this)">
+      <div class="scope-item-content">
+        <div class="scope-item-label">a) Assistance in preparation of projections and business plan</div>
+        <div class="scope-item-desc">Promoter info, business operations presentation, org chart, business plan</div>
+      </div>
+    </div>
+    <div class="scope-item" id="wrap_s2b">
+      <input type="checkbox" id="s2b" class="sec2" onchange="updateItem(this)">
+      <div class="scope-item-content">
+        <div class="scope-item-label">b) Support on application of commencement of operations in SEZ/IFSCA</div>
+        <div class="scope-item-desc">Share certificates, board meeting, auditor appointment, SEZ portal</div>
+      </div>
+    </div>
+    <div class="scope-item" id="wrap_s2c">
+      <input type="checkbox" id="s2c" class="sec2" onchange="updateItem(this)">
+      <div class="scope-item-content">
+        <div class="scope-item-label">c) Liaison for Bank Account opening (Foreign &amp; INR account)</div>
+        <div class="scope-item-desc">Forms, KYC documentation, bank intermediary services</div>
+      </div>
+    </div>
+    <div class="scope-item" id="wrap_s2d">
+      <input type="checkbox" id="s2d" class="sec2" onchange="updateItem(this)">
+      <div class="scope-item-content">
+        <div class="scope-item-label">d) Assisting in additional capital infusion</div>
+        <div class="scope-item-desc">Board meeting docs, EGM, MCA filing, stamp duty assistance</div>
+      </div>
+    </div>
+    <div class="scope-item" id="wrap_s2e">
+      <input type="checkbox" id="s2e" class="sec2" onchange="updateItem(this)">
+      <div class="scope-item-content">
+        <div class="scope-item-label">e) ICEGATE Registration</div>
+        <div class="scope-item-desc">Indian Customs Electronic Gateway portal registration</div>
+      </div>
+    </div>
+    <div class="scope-item" id="wrap_s2f">
+      <input type="checkbox" id="s2f" class="sec2" onchange="updateItem(this)">
+      <div class="scope-item-content">
+        <div class="scope-item-label">f) Shop &amp; Establishment Intimation/Registration</div>
+        <div class="scope-item-desc">Application, coordination and letter of approval/intimation</div>
+      </div>
+    </div>
+    <div class="scope-item" id="wrap_s2g">
+      <input type="checkbox" id="s2g" class="sec2" onchange="updateItem(this)">
+      <div class="scope-item-content">
+        <div class="scope-item-label">g) Obtaining SEZ ID cards</div>
+        <div class="scope-item-desc">Applications, coordination with SEZ admin, follow-up until issuance</div>
+      </div>
+    </div>
+
+    <div class="fee-section">
+      <div class="fee-section-title">💰 Section 2 Fees</div>
+      <div class="fee-row">
+        <label>2(a) to 2(d) — Fee per service (USD)</label>
+        <input type="text" id="fee_s2_abcd" value="750">
+      </div>
+      <div class="fee-row">
+        <label>2(e) to 2(g) — Fee lumpsum (USD)</label>
+        <input type="text" id="fee_s2_efg" value="750">
+      </div>
+      <div class="fee-note">Default: USD 750 per service for a–d &nbsp;|&nbsp; USD 750 lumpsum for e–g</div>
+    </div>
+  </div>
+
+  <!-- SIGNATORY -->
+  <div class="section">
+    <h2>✍️ Signatory Details</h2>
+    <div class="section-divider"></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Signatory 1 Name</label>
+        <input type="text" id="sig1Name" value="Meet Thakkar">
+      </div>
+      <div class="form-group">
+        <label>Signatory 1 Title</label>
+        <input type="text" id="sig1Title" value="Head – GIFT IFSC Practice">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Signatory 2 Name</label>
+        <input type="text" id="sig2Name" value="Nikhil Joshi">
+      </div>
+      <div class="form-group">
+        <label>Signatory 2 Title</label>
+        <input type="text" id="sig2Title" value="Director Sales – Managed Services">
+      </div>
+    </div>
+  </div>
+
+  <button class="generate-btn" onclick="generateWord()" id="btnGenerate">
+    🚀 Generate Gift City Proposal
+  </button>
+  <div class="status" id="status"></div>
+
+</div>
+
+<script>
+document.getElementById('proposalDate').valueAsDate = new Date();
+
+function updateItem(cb) {
+  const wrap = document.getElementById('wrap_' + cb.id);
+  if (cb.checked) wrap.classList.add('checked');
+  else wrap.classList.remove('checked');
+}
+
+function selectAll(cls) {
+  document.querySelectorAll('.' + cls).forEach(cb => { cb.checked = true; updateItem(cb); });
+}
+function deselectAll(cls) {
+  document.querySelectorAll('.' + cls).forEach(cb => { cb.checked = false; updateItem(cb); });
+}
+
+// Init checked states on load
+document.querySelectorAll('input[type=checkbox]').forEach(cb => updateItem(cb));
+
+// Auto-fill summary when company name is typed
+document.getElementById('clientCompany').addEventListener('input', function() {
+  const company = this.value || '[Company Name]';
+  document.getElementById('summaryOfRequirements').value =
+    `${company} are keen to set up a Fintech entity at GIFT City under existing IFSC regulations and has requested InCorp to provide a proposal for the same. Our scope of services will be as follows:`;
+});
+
+async function generateWord() {
+  const btn = document.getElementById('btnGenerate');
+  const status = document.getElementById('status');
+  btn.disabled = true;
+  status.className = 'status';
+  status.textContent = '⏳ Generating document, please wait...';
+
+  const data = {
+    proposalDate:          document.getElementById('proposalDate').value,
+    clientName:            document.getElementById('clientName').value,
+    clientDesignation:     document.getElementById('clientDesignation').value,
+    clientCompany:         document.getElementById('clientCompany').value,
+    clientAddress1:        document.getElementById('clientAddress1').value,
+    clientAddress2:        document.getElementById('clientAddress2').value,
+    clientAddress3:        document.getElementById('clientAddress3').value,
+    summaryOfRequirements: document.getElementById('summaryOfRequirements').value,
+    s1a: document.getElementById('s1a').checked,
+    s1b: document.getElementById('s1b').checked,
+    s1c: document.getElementById('s1c').checked,
+    s1d: document.getElementById('s1d').checked,
+    s1e: document.getElementById('s1e').checked,
+    s1f: document.getElementById('s1f').checked,
+    s1g: document.getElementById('s1g').checked,
+    s1h: document.getElementById('s1h').checked,
+    s1i: document.getElementById('s1i').checked,
+    fee_s1:      document.getElementById('fee_s1').value,
+    s2a: document.getElementById('s2a').checked,
+    s2b: document.getElementById('s2b').checked,
+    s2c: document.getElementById('s2c').checked,
+    s2d: document.getElementById('s2d').checked,
+    s2e: document.getElementById('s2e').checked,
+    s2f: document.getElementById('s2f').checked,
+    s2g: document.getElementById('s2g').checked,
+    fee_s2_abcd: document.getElementById('fee_s2_abcd').value,
+    fee_s2_efg:  document.getElementById('fee_s2_efg').value,
+    sig1Name:  document.getElementById('sig1Name').value,
+    sig1Title: document.getElementById('sig1Title').value,
+    sig2Name:  document.getElementById('sig2Name').value,
+    sig2Title: document.getElementById('sig2Title').value,
+  };
+
+  try {
+    const res = await fetch('/generate_giftcity_word', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Server error');
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const company = (data.clientCompany || 'Client').replace(/\s+/g, '_');
+    a.download = `InCorp_GiftCity_Proposal_${company}.docx`;
+    a.click();
+    URL.revokeObjectURL(url);
+    status.className = 'status success';
+    status.textContent = '✅ Document generated successfully!';
+  } catch(e) {
+    status.className = 'status error';
+    status.textContent = '❌ ' + e.message;
+  }
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
