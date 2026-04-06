@@ -321,7 +321,7 @@ def _bul(text, size_pt=11, color_hex=None, font='Roboto'):
     r.append(_make_rPr(size_pt=size_pt, color_hex=color_hex, font_name=font))
     t = OxmlElement('w:t')
     t.set('{http://www.w3.org/XML/1998/namespace}space', 'preserve')
-    t.text = f'\u2013  {clean}'
+    t.text = f'\u2022  {clean}'
     r.append(t); p.append(r)
     return p
 
@@ -587,7 +587,7 @@ def generate_giftcity_word():
         elems.append(_sp(6))
         elems.append(_p('Yours Sincerely and on behalf of InCorp (India),', size_pt=11, font='Roboto', sa=2))
         elems.append(_sp(12))
-        elems.append(_p(sig2_name, bold=False, size_pt=11, font='Roboto', sa=0))
+        elems.append(_p(sig2_name, bold=True, size_pt=11, font='Roboto', sa=0))
         elems.append(_p(sig2_title, size_pt=11, font='Roboto', sa=0))
         elems.append(_p('InCorp Advisory Services Pvt. Ltd.', size_pt=11, font='Roboto', sa=0))
         elems.append(_sp(12))
@@ -595,14 +595,14 @@ def generate_giftcity_word():
         elems.append(_page_break())
         # ── SUMMARY OF REQUIREMENTS ──────────────────────────────
         elems.append(_p_multi([
-            {'text': '\u2756 SUMMARY OF REQUIREMENTS', 'bold': True, 'underline': True,
+            {'text': '\u2756  SUMMARY OF REQUIREMENTS', 'bold': True, 'underline': True,
              'size_pt': 12, 'color_hex': 'C00000', 'font': 'Roboto'}
         ], sb=10, sa=6))
         elems.append(_p(summary_text, size_pt=11, font='Roboto', align='justify', sb=0, sa=8))
 
         # ── SCOPE OF SERVICES HEADING ────────────────────────────
         elems.append(_p_multi([
-            {'text': '\u2756 SCOPE OF SERVICES', 'bold': True, 'underline': True,
+            {'text': '\u2756  SCOPE OF SERVICES', 'bold': True, 'underline': True,
              'size_pt': 12, 'color_hex': 'C00000', 'font': 'Roboto'}
         ], sb=8, sa=6))
 
@@ -716,9 +716,11 @@ def generate_giftcity_word():
                     pPr = OxmlElement('w:pPr')
                     cover_p.insert(0, pPr)
                 for old_ind in pPr.findall(qn('w:ind')): pPr.remove(old_ind)
-                # Set center alignment
+                ind = OxmlElement('w:ind')
+                ind.set(qn('w:left'), '2800')
+                pPr.append(ind)
                 for old_jc in pPr.findall(qn('w:jc')): pPr.remove(old_jc)
-                jc = OxmlElement('w:jc'); jc.set(qn('w:val'), 'center'); pPr.append(jc)
+                jc = OxmlElement('w:jc'); jc.set(qn('w:val'), 'left'); pPr.append(jc)
                 # Auto font size based on company name length
                 name_upper = client_company.upper()
                 name_len = len(name_upper)
