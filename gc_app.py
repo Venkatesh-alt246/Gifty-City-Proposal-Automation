@@ -620,8 +620,6 @@ def generate_giftcity_word():
 
         # ── SECTION 2 ────────────────────────────────────────────
         if s2_selected:
-            elems.append(_page_break())
-        if s2_selected:
             elems.append(_heading('Other Support Services (Optional)', size_pt=12, color_hex='002060', sb=8, sa=4))
             for idx, key in enumerate(s2_selected):
                 item = SECTION2_ITEMS[key]
