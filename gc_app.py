@@ -715,7 +715,7 @@ def generate_giftcity_word():
                     cover_p.insert(0, pPr)
                 for old_ind in pPr.findall(qn('w:ind')): pPr.remove(old_ind)
                 ind = OxmlElement('w:ind')
-                ind.set(qn('w:left'), '2800')
+                ind.set(qn('w:left'), '3000')
                 pPr.append(ind)
                 for old_jc in pPr.findall(qn('w:jc')): pPr.remove(old_jc)
                 jc = OxmlElement('w:jc'); jc.set(qn('w:val'), 'left'); pPr.append(jc)
