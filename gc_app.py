@@ -797,5 +797,5 @@ if __name__ == '__main__':
     print(f"Template expected at: {os.path.join(BASE_DIR, 'InCorp_Proposal_for_LSI.docx')}")
     print("\n🚀 Starting server on http://localhost:5001")
     print("=" * 60)
-    port = int(os.environ.get('PORT', 5001))
+    port = int(os.environ.get('PORT', 8080))
     app.run(debug=False, host='0.0.0.0', port=port)
