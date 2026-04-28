@@ -553,14 +553,14 @@ def generate_giftcity_word():
         elems.append(_page_break())
         # ── SUMMARY OF REQUIREMENTS ──────────────────────────────
         elems.append(_p_multi([
-            {'text': '\u2756  SUMMARY OF REQUIREMENTS', 'bold': True, 'underline': True,
+            {'text': '\u2756   SUMMARY OF REQUIREMENTS', 'bold': True, 'underline': True,
              'size_pt': 12, 'color_hex': 'C00000', 'font': 'Roboto'}
         ], sb=10, sa=6))
         elems.append(_p(summary_text, size_pt=11, font='Roboto', align='justify', sb=0, sa=8))
 
         # ── SCOPE OF SERVICES HEADING ────────────────────────────
         elems.append(_p_multi([
-            {'text': '\u2756  SCOPE OF SERVICES', 'bold': True, 'underline': True,
+            {'text': '\u2756   SCOPE OF SERVICES', 'bold': True, 'underline': True,
              'size_pt': 12, 'color_hex': 'C00000', 'font': 'Roboto'}
         ], sb=8, sa=6))
 
