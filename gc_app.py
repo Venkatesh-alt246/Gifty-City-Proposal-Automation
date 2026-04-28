@@ -41,7 +41,7 @@ SECTION1_ITEMS = {
         ]
     },
     's1b': {
-        'label': 'SEZ Unit application',
+        'label': 'SEZ / IFSCA Unit application',
         'bullets': [
             'Preparation of documents for SEZ Unit in consultation with the client.',
             'Preparation of forms, declaration and support documents for IFSCA in consultation with the client.',
@@ -338,48 +338,37 @@ def _sub_heading(text, letter, size_pt=11, bold=True):
 
 
 def _make_commercials_table(rows):
-    """Build the fee table — full width, compact rows, matching original"""
+    """Build the fee table matching the template exactly."""
+    HEADER_FILL = '44546A'
+    # Column widths from template: No.(712) | Scope(7200) | Fees(1710)
+    col_widths = [712, 7200, 1710]
+
     tbl = OxmlElement('w:tbl')
     tblPr = OxmlElement('w:tblPr')
     tblStyle = OxmlElement('w:tblStyle')
     tblStyle.set(qn('w:val'), 'TableGrid')
     tblPr.append(tblStyle)
 
-    # Full page width — 8640 twips (6 inches at 1440 per inch)
     tblW = OxmlElement('w:tblW')
-    tblW.set(qn('w:w'), '8640')
-    tblW.set(qn('w:type'), 'dxa')
+    tblW.set(qn('w:w'), '0')
+    tblW.set(qn('w:type'), 'auto')
     tblPr.append(tblW)
 
-    # Zero table indent so it aligns with page margins
-    tblInd = OxmlElement('w:tblInd')
-    tblInd.set(qn('w:w'), '0')
-    tblInd.set(qn('w:type'), 'dxa')
-    tblPr.append(tblInd)
-
-    # Borders
     tblBorders = OxmlElement('w:tblBorders')
     for s in ['top', 'left', 'bottom', 'right', 'insideH', 'insideV']:
         b = OxmlElement(f'w:{s}')
         b.set(qn('w:val'), 'single')
         b.set(qn('w:sz'), '4')
-        b.set(qn('w:color'), '000000')
+        b.set(qn('w:color'), 'auto')
         tblBorders.append(b)
     tblPr.append(tblBorders)
 
-    # Table layout fixed
     tblLayout = OxmlElement('w:tblLayout')
-    tblLayout.set(qn('w:type'), 'fixed')
+    tblLayout.set(qn('w:type'), 'autofit')
     tblPr.append(tblLayout)
-
-    tblJc = OxmlElement('w:jc')
-    tblJc.set(qn('w:val'), 'center')
-    tblPr.append(tblJc)
 
     tbl.append(tblPr)
 
-    # Column widths: No.(540) | Scope(6300) | Fees(1800) = 8640 total
-    col_widths = [540, 6300, 1800]
     tblGrid = OxmlElement('w:tblGrid')
     for w in col_widths:
         gc = OxmlElement('w:gridCol')
@@ -387,7 +376,7 @@ def _make_commercials_table(rows):
         tblGrid.append(gc)
     tbl.append(tblGrid)
 
-    def _tc(text, bold=False, align='left', width=None, shade=None, size_pt=10):
+    def _tc(text, is_header=False, align='left', width=None):
         tc = OxmlElement('w:tc')
         tcPr = OxmlElement('w:tcPr')
         if width:
@@ -395,29 +384,19 @@ def _make_commercials_table(rows):
             tcW.set(qn('w:w'), str(width))
             tcW.set(qn('w:type'), 'dxa')
             tcPr.append(tcW)
-        if shade:
+        if is_header:
             shd = OxmlElement('w:shd')
             shd.set(qn('w:val'), 'clear')
             shd.set(qn('w:color'), 'auto')
-            shd.set(qn('w:fill'), shade)
+            shd.set(qn('w:fill'), HEADER_FILL)
             tcPr.append(shd)
-        # Compact cell margins — tight like Excel
-        mar = OxmlElement('w:tcMar')
-        for side, val in zip(['top', 'bottom', 'left', 'right'], [60, 60, 108, 108]):
-            m = OxmlElement(f'w:{side}')
-            m.set(qn('w:w'), str(val))
-            m.set(qn('w:type'), 'dxa')
-            mar.append(m)
-        tcPr.append(mar)
         va = OxmlElement('w:vAlign')
         va.set(qn('w:val'), 'center')
         tcPr.append(va)
         tc.append(tcPr)
 
-        # Paragraph inside cell
         p = OxmlElement('w:p')
         pPr = OxmlElement('w:pPr')
-        # Compact line spacing
         spacing = OxmlElement('w:spacing')
         spacing.set(qn('w:before'), '0')
         spacing.set(qn('w:after'), '0')
@@ -432,20 +411,9 @@ def _make_commercials_table(rows):
         if text:
             r = OxmlElement('w:r')
             rPr = OxmlElement('w:rPr')
-            rFonts = OxmlElement('w:rFonts')
-            rFonts.set(qn('w:ascii'), 'Roboto')
-            rFonts.set(qn('w:hAnsi'), 'Roboto')
-            rPr.append(rFonts)
-            if bold:
-                rPr.append(OxmlElement('w:b'))
-            sz = OxmlElement('w:sz')
-            sz.set(qn('w:val'), str(size_pt * 2))
-            rPr.append(sz)
-            szCs = OxmlElement('w:szCs')
-            szCs.set(qn('w:val'), str(size_pt * 2))
-            rPr.append(szCs)
-            # White text for header
-            if shade == '1F3864':
+            # Bold for every row (matches template)
+            rPr.append(OxmlElement('w:b'))
+            if is_header:
                 col = OxmlElement('w:color')
                 col.set(qn('w:val'), 'FFFFFF')
                 rPr.append(col)
@@ -460,21 +428,12 @@ def _make_commercials_table(rows):
 
     for ri, row in enumerate(rows):
         tr = OxmlElement('w:tr')
-        # Compact row height — 360 twips (0.25 inch), exact like Excel
-        trPr = OxmlElement('w:trPr')
-        trHeight = OxmlElement('w:trHeight')
-        trHeight.set(qn('w:val'), '360')
-        trHeight.set(qn('w:hRule'), 'atLeast')
-        trPr.append(trHeight)
-        tr.append(trPr)
-
+        # No explicit row height — let Word auto-size (matches template)
         is_header = (ri == 0)
-        shade = '1F3864' if is_header else None
         aligns = ['center', 'left', 'right']
         for ci, cell_text in enumerate(row):
-            tc = _tc(cell_text, bold=is_header, align=aligns[ci],
-                     width=col_widths[ci], shade=shade, size_pt=10)
-            tr.append(tc)
+            tr.append(_tc(cell_text, is_header=is_header,
+                          align=aligns[ci], width=col_widths[ci]))
         tbl.append(tr)
     return tbl
 
@@ -535,10 +494,9 @@ def generate_giftcity_word():
         fee_s2_abcd = data.get('fee_s2_abcd', '750')
         fee_s2_efg  = data.get('fee_s2_efg', '750')
 
-        sig1_name  = data.get('sig1Name', 'Meet Thakkar')
-        sig1_title = data.get('sig1Title', 'Head – GIFT IFSC Practice')
-        sig2_name  = data.get('sig2Name', 'Nikhil Joshi')
-        sig2_title = data.get('sig2Title', 'Director Sales – Managed Services')
+        sig_name    = data.get('sigName',    'Nikhil Joshi')
+        sig_title   = data.get('sigTitle',   'Director Sales – Managed Services')
+        sig_company = data.get('sigCompany', 'InCorp Advisory Services Pvt. Ltd.')
 
         # ── Build dynamic elements ───────────────────────────────
         elems = []
@@ -587,9 +545,9 @@ def generate_giftcity_word():
         elems.append(_sp(6))
         elems.append(_p('Yours Sincerely and on behalf of InCorp (India),', size_pt=11, font='Roboto', sa=2))
         elems.append(_sp(12))
-        elems.append(_p(sig2_name, bold=True, size_pt=11, font='Roboto', sa=0))
-        elems.append(_p(sig2_title, size_pt=11, font='Roboto', sa=0))
-        elems.append(_p('InCorp Advisory Services Pvt. Ltd.', size_pt=11, font='Roboto', sa=0))
+        elems.append(_p(sig_name, bold=True, size_pt=11, font='Roboto', sa=0))
+        elems.append(_p(sig_title, size_pt=11, font='Roboto', sa=0))
+        elems.append(_p(sig_company, size_pt=11, font='Roboto', sa=0))
         elems.append(_sp(12))
 
         elems.append(_page_break())
@@ -607,12 +565,13 @@ def generate_giftcity_word():
         ], sb=8, sa=6))
 
         # ── SECTION 1 ────────────────────────────────────────────
+        scope_num = 1
         if s1_selected:
-            elems.append(_heading('Entity Setup Services', size_pt=12, color_hex='002060', sb=8, sa=4))
+            elems.append(_heading(f'{scope_num}.  Entity Setup Services', size_pt=12, color_hex='002060', sb=8, sa=4))
+            scope_num += 1
             for idx, key in enumerate(s1_selected):
                 item = SECTION1_ITEMS[key]
                 letter = ALPHA[idx]
-                # Sub-heading with auto letter
                 elems.append(_sub_heading(item['label'], letter))
                 for bullet in item['bullets']:
                     elems.append(_bul(bullet))
@@ -620,7 +579,8 @@ def generate_giftcity_word():
 
         # ── SECTION 2 ────────────────────────────────────────────
         if s2_selected:
-            elems.append(_heading('Other Support Services (Optional)', size_pt=12, color_hex='002060', sb=8, sa=4))
+            elems.append(_heading(f'{scope_num}.  Other Support Services (Optional)', size_pt=12, color_hex='002060', sb=8, sa=4))
+            scope_num += 1
             for idx, key in enumerate(s2_selected):
                 item = SECTION2_ITEMS[key]
                 letter = ALPHA[idx]
@@ -632,38 +592,29 @@ def generate_giftcity_word():
         # ── COMMERCIALS TABLE ────────────────────────────────────
         elems.append(_page_break())
         elems.append(_sp(6))
-        elems.append(_heading('Commercials with terms & conditions:', size_pt=13, color_hex='C00000', sb=8, sa=6))
+        # Title in dark blue (44546A) at 18pt — matches template exactly
+        elems.append(_heading('Commercials with terms & conditions:', size_pt=18, color_hex='44546A', sb=8, sa=6))
 
         # Build fee rows dynamically
         comm_rows = [['No.', 'Scope', 'Fees (USD)']]
         row_num = 1
 
         if s1_selected:
-            comm_rows.append([f'{row_num}.', 'Entity Setup Services', f'USD {fee_s1}'])
+            comm_rows.append([f'{row_num}.', 'Entity Setup Services', fee_s1])
             row_num += 1
 
         if s2_selected:
-            comm_rows.append([f'{row_num}.', 'Other Support Services (Optional)', ''])
+            comm_rows.append([f'{row_num}.', 'Other Support Services (Optional Services)', ''])
             row_num += 1
 
-            # Group a-d vs e-g based on what's selected
             s2_abcd = [k for k in s2_selected if k in ('s2a', 's2b', 's2c', 's2d')]
             s2_efg  = [k for k in s2_selected if k in ('s2e', 's2f', 's2g')]
 
             if s2_abcd:
-                # List which sub-items are selected
-                labels = ', '.join(
-                    f'{ALPHA[s2_selected.index(k)]}'
-                    for k in s2_abcd
-                )
-                comm_rows.append(['', f'  {labels} (as selected above)', f'USD {fee_s2_abcd} per service'])
+                comm_rows.append(['', '2(a) to 2(d)', f'{fee_s2_abcd} per service'])
 
             if s2_efg:
-                labels = ', '.join(
-                    f'{ALPHA[s2_selected.index(k)]}'
-                    for k in s2_efg
-                )
-                comm_rows.append(['', f'  {labels} (as selected above)', f'USD {fee_s2_efg} (lumpsum)'])
+                comm_rows.append(['', '2(e) to 2(g)', f'{fee_s2_efg} (lumpsum)'])
 
         elems.append(_make_commercials_table(comm_rows))
         elems.append(_sp(6))
@@ -678,10 +629,7 @@ def generate_giftcity_word():
         ]:
             elems.append(_bul(note, size_pt=11))
         elems.append(_sp(6))
-
-        # Force contact page to always start on new page
-        from docx.oxml import OxmlElement
-        from docx.oxml.ns import qn
+        elems.append(_page_break())  # ensures contact page always starts on its own page
 
         # ── INJECT INTO TEMPLATE ─────────────────────────────────
         with open(template_path, 'rb') as f:
@@ -690,10 +638,15 @@ def generate_giftcity_word():
         body = doc.element.body
         children = list(body)
 
-        # Dynamic content: indices 71-226 based on analysis
-        # (date at 71, letter through commercials, notes at ~226)
-        # Remove old dynamic content
-        for el in children[71:228]:
+        # Remove only the dynamic zone (cover letter → notes) + blank buffer.
+        # Template layout after user update:
+        #   71  = cover letter start (dynamic)
+        #   227 = last note paragraph
+        #   228–242 = blank buffer paragraphs
+        #   243 = Terms & Conditions page start  ← preserve from here onwards
+        #   300 = page break before contact page
+        #   306 = Contact Details page
+        for el in children[71:243]:
             body.remove(el)
 
         # Insert new elements after index 70
@@ -741,31 +694,7 @@ def generate_giftcity_word():
         except:
             pass
 
-        # Update signatory contact page (children after commercials)
-        # sig1 name is around index 247 in original — just update text nodes
-        try:
-            all_children = list(body)
-            for child in all_children:
-                if child.tag == qn('w:p'):
-                    text = ''.join(t.text or '' for t in child.iter(qn('w:t')))
-                    if 'Meet Thakkar' in text or 'Head \u2013 GIFT IFSC Practice' in text:
-                        for t_elem in child.iter(qn('w:t')):
-                            if t_elem.text and 'Meet Thakkar' in t_elem.text:
-                                t_elem.text = t_elem.text.replace('Meet Thakkar', sig1_name)
-                            if t_elem.text and 'Head \u2013 GIFT IFSC Practice' in t_elem.text:
-                                t_elem.text = t_elem.text.replace('Head \u2013 GIFT IFSC Practice', sig1_title)
-                    if 'Nikhil Joshi' in text:
-                        for t_elem in child.iter(qn('w:t')):
-                            if t_elem.text and 'Nikhil Joshi' in t_elem.text:
-                                t_elem.text = t_elem.text.replace('Nikhil Joshi', sig2_name)
-                    if 'Director Sales' in text and 'Managed Services' in text:
-                        for t_elem in child.iter(qn('w:t')):
-                            if t_elem.text and 'Director Sales' in t_elem.text:
-                                t_elem.text = t_elem.text.replace(
-                                    'Director Sales- Managed Services', sig2_title
-                                ).replace('Director Sales – Managed Services', sig2_title)
-        except:
-            pass
+        # Contact page in template retains Meet Thakkar & Nikhil Joshi as printed
 
         # Save
         out_buffer = io.BytesIO()

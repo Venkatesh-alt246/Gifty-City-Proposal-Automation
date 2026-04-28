@@ -455,26 +455,34 @@
 
   <!-- SIGNATORY -->
   <div class="section">
-    <h2>✍️ Signatory Details</h2>
+    <h2>✍️ Signature</h2>
     <div class="section-divider"></div>
     <div class="form-row">
       <div class="form-group">
-        <label>Signatory 1 Name</label>
-        <input type="text" id="sig1Name" value="Meet Thakkar">
-      </div>
-      <div class="form-group">
-        <label>Signatory 1 Title</label>
-        <input type="text" id="sig1Title" value="Head – GIFT IFSC Practice">
+        <label>Select Signatory</label>
+        <select id="signatorySelect" onchange="handleSignatoryChange()">
+          <option value="nikhil">Nikhil Joshi — Director Sales, Managed Services</option>
+          <option value="meet">Meet Thakkar — Head, GIFT IFSC Practice</option>
+          <option value="custom">Add Someone Else...</option>
+        </select>
       </div>
     </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Signatory 2 Name</label>
-        <input type="text" id="sig2Name" value="Nikhil Joshi">
+    <div id="customSignatoryFields" style="display:none; margin-top:14px;">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="customSigName" placeholder="Full Name">
+        </div>
+        <div class="form-group">
+          <label>Designation</label>
+          <input type="text" id="customSigDesig" placeholder="e.g. Senior Manager">
+        </div>
       </div>
-      <div class="form-group">
-        <label>Signatory 2 Title</label>
-        <input type="text" id="sig2Title" value="Director Sales – Managed Services">
+      <div class="form-row full">
+        <div class="form-group">
+          <label>Company Name</label>
+          <input type="text" id="customSigCompany" placeholder="Company Name" value="InCorp Advisory Services Pvt. Ltd.">
+        </div>
       </div>
     </div>
   </div>
@@ -502,19 +510,55 @@ function deselectAll(cls) {
   document.querySelectorAll('.' + cls).forEach(cb => { cb.checked = false; updateItem(cb); });
 }
 
-// Init checked states on load
 document.querySelectorAll('input[type=checkbox]').forEach(cb => updateItem(cb));
 
-// Auto-fill summary when company name is typed
 document.getElementById('clientCompany').addEventListener('input', function() {
   const company = this.value || '[Company Name]';
   document.getElementById('summaryOfRequirements').value =
     `${company} are keen to set up a Fintech entity at GIFT City under existing IFSC regulations and has requested InCorp to provide a proposal for the same. Our scope of services will be as follows:`;
 });
 
+function handleSignatoryChange() {
+  const val = document.getElementById('signatorySelect').value;
+  document.getElementById('customSignatoryFields').style.display = val === 'custom' ? 'block' : 'none';
+}
+
+function getSignatoryData() {
+  const val = document.getElementById('signatorySelect').value;
+  if (val === 'nikhil') {
+    return {
+      sigName:    'Nikhil Joshi',
+      sigTitle:   'Director Sales – Managed Services',
+      sigCompany: 'InCorp Advisory Services Pvt. Ltd.'
+    };
+  } else if (val === 'meet') {
+    return {
+      sigName:    'Meet Thakkar',
+      sigTitle:   'Head – GIFT IFSC Practice',
+      sigCompany: 'InCorp Advisory Services Pvt. Ltd.'
+    };
+  } else {
+    return {
+      sigName:    document.getElementById('customSigName').value.trim(),
+      sigTitle:   document.getElementById('customSigDesig').value.trim(),
+      sigCompany: document.getElementById('customSigCompany').value.trim()
+    };
+  }
+}
+
 async function generateWord() {
   const btn = document.getElementById('btnGenerate');
   const status = document.getElementById('status');
+
+  const sig = getSignatoryData();
+  if (document.getElementById('signatorySelect').value === 'custom') {
+    if (!sig.sigName || !sig.sigTitle || !sig.sigCompany) {
+      status.className = 'status error';
+      status.textContent = '❌ Please fill in Name, Designation, and Company for the custom signatory.';
+      return;
+    }
+  }
+
   btn.disabled = true;
   status.className = 'status';
   status.textContent = '⏳ Generating document, please wait...';
@@ -547,10 +591,9 @@ async function generateWord() {
     s2g: document.getElementById('s2g').checked,
     fee_s2_abcd: document.getElementById('fee_s2_abcd').value,
     fee_s2_efg:  document.getElementById('fee_s2_efg').value,
-    sig1Name:  document.getElementById('sig1Name').value,
-    sig1Title: document.getElementById('sig1Title').value,
-    sig2Name:  document.getElementById('sig2Name').value,
-    sig2Title: document.getElementById('sig2Title').value,
+    sigName:    sig.sigName,
+    sigTitle:   sig.sigTitle,
+    sigCompany: sig.sigCompany,
   };
 
   try {
